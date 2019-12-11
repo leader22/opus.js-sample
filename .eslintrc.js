@@ -27,7 +27,9 @@ module.exports = {
     "no-lonely-if": "error",
     "prefer-const": "error",
 
-    "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/interface-name-prefix": "warn",
+    "@typescript-eslint/camelcase": "warn",
+
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-member-accessibility": [
       "error",
