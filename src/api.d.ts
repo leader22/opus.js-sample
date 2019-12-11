@@ -1,5 +1,3 @@
-/// <reference path="typings/es6-promise.d.ts" />
-
 interface IAudioInfo {
   sampling_rate: number;
   num_of_channels: number;

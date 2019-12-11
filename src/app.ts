@@ -50,8 +50,10 @@ export class Test {
 
   encode_decode_play(): void {
     this.init_player();
+
     const [reader, open_params] = this.get_reader();
     if (!reader) return;
+
     let working = false;
     const packet_queue = [];
     const encoder = new AudioEncoder("opus_encoder.js");
@@ -137,6 +139,7 @@ export class Test {
   private get_reader(): [IAudioReader, any] {
     const radio_mic = <HTMLInputElement>document.getElementById("input_mic");
     const radio_file = <HTMLInputElement>document.getElementById("input_file");
+
     let reader: IAudioReader = null;
     let params: any = null;
     if (radio_mic.checked) {
