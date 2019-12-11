@@ -6,6 +6,7 @@ export class Test {
     constructor() {
         this.player = null;
     }
+    // そのままInputをOutputに流す
     play() {
         this.init_player();
         const [reader, open_params] = this.get_reader();
@@ -104,6 +105,7 @@ export class Test {
             this.player.close();
         this.player = new WebAudioPlayer();
     }
+    // マイクかファイルかをInputとでき、どちらでも抽象化したAudioReaderを返す
     get_reader() {
         const radio_mic = document.getElementById("input_mic");
         const radio_file = document.getElementById("input_file");

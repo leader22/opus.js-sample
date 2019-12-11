@@ -14,6 +14,7 @@ export class WebAudioPlayer {
 
   onneedbuffer: () => void = null;
 
+  // 24000, 2, 1024, 4, 16
   init(
     sampling_rate: number,
     num_of_channels: number,
@@ -23,6 +24,7 @@ export class WebAudioPlayer {
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       this.context = new AudioContext();
+
       this.node = this.context.createScriptProcessor(
         period_samples,
         0,
@@ -31,6 +33,7 @@ export class WebAudioPlayer {
       this.node.onaudioprocess = ev => {
         this._onaudioprocess(ev);
       };
+
       if (sampling_rate != this.getActualSamplingRate()) {
         console.log(
           "enable resampling: " +
@@ -46,6 +49,7 @@ export class WebAudioPlayer {
       } else {
         this.period_samples = period_samples * num_of_channels;
       }
+
       this.ringbuf = new RingBuffer(
         new Float32Array(this.period_samples * buffer_periods)
       );

@@ -6,6 +6,7 @@ export class WebAudioPlayer {
         this.onneedbuffer = null;
         this.in_requesting_check_buffer = false;
     }
+    // 24000, 2, 1024, 4, 16
     init(sampling_rate, num_of_channels, period_samples, delay_periods, buffer_periods) {
         return new Promise((resolve, reject) => {
             this.context = new AudioContext();

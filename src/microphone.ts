@@ -10,6 +10,7 @@ export class MicrophoneReader implements IAudioReader {
   private ringbuf: RingBuffer;
   private read_unit: number;
 
+  // 1024
   open(buffer_samples_per_ch: number, params: any): Promise<IAudioInfo> {
     this.context = new AudioContext();
     return new Promise<IAudioInfo>((resolve, reject) => {
@@ -17,9 +18,11 @@ export class MicrophoneReader implements IAudioReader {
         this.src_node = this.context.createMediaStreamSource(strm);
         this.ringbuf = new RingBuffer(
           new Float32Array(
+            // 1024 * 2 * 8 = 16384
             buffer_samples_per_ch * this.src_node.channelCount * 8
           )
         );
+
         this.proc_node = this.context.createScriptProcessor(
           0,
           1,
@@ -30,7 +33,10 @@ export class MicrophoneReader implements IAudioReader {
         };
         this.src_node.connect(this.proc_node);
         this.proc_node.connect(this.context.destination);
+        // 1024 * 2 = 2048
         this.read_unit = buffer_samples_per_ch * this.src_node.channelCount;
+
+        // 24000, 2
         resolve({
           sampling_rate: this.context.sampleRate / 2,
           num_of_channels: this.src_node.channelCount

@@ -61,3 +61,56 @@ TODO
 - Worker(this)
 - Module deps for Emscripten
 - Actural Emscripten modules
+
+Reading
+-------
+
+## main.ts
+- HTMLにあるボタンを`app.ts`に結ぶだけ
+- bypassかopusかどちらか選べる
+
+## app.ts
+- マイクかファイルかInput音源を取得
+- そこからPCMを読み出して、`player.ts`につなぐ
+- `player.ts`を初期化して`start()`する
+- `main.ts`からbypassが選ばれれば、そのままInputをOutputに流す（リサンプルのみ）
+- `main.ts`からopusが選ばれれば、InputをEncodeしてDecodeしてOutputに流す（リサンプルもする）
+
+## microphone.ts
+- マイクを`gUM()`する
+- 専用の`ringbuf`を持つ
+- ストリームは`ScriptProcessorNode`に対してつないで、PCMを`ringbuf`に貯めておく
+- `read()`で外から読み出される
+
+## riff_pcm_wave.ts
+- それのファイル音源ver
+
+## player.ts
+- 専用の`ringbuf`を持つ
+- `ScriptProcessorNode`でそれを読み出して再生する
+- `ringbuf`は外から`enqueue()`されたときに貯まる
+- `onneedbuffer`イベントを定期的に発火する
+- これを受けた外側が`enqueue()`してくれる
+
+## ring_buffer.ts
+- リングバッファの自前実装
+
+## resampler.ts
+- `speex_resampler.ts`を使ったリサンプラー
+- 中身は丸投げ
+
+## speex_resampler.ts
+- https://github.com/xiph/speexdsp
+- EmscriptenでWorker内に展開される
+
+## impl.ts
+- `opus_decoder.ts` or `opus_encoder.ts`のWorkerを抱える
+- 中身はほぼ丸投げ
+
+## opus_encoder.ts
+- https://github.com/xiph/opus
+- EmscriptenでWorker内に展開される
+
+## opus_decoder.ts
+- https://github.com/xiph/opus
+- EmscriptenでWorker内に展開される

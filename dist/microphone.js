@@ -1,18 +1,23 @@
 import { RingBuffer } from "./ring_buffer.js";
 export class MicrophoneReader {
+    // 1024
     open(buffer_samples_per_ch, params) {
         this.context = new AudioContext();
         return new Promise((resolve, reject) => {
             const callback = strm => {
                 this.src_node = this.context.createMediaStreamSource(strm);
-                this.ringbuf = new RingBuffer(new Float32Array(buffer_samples_per_ch * this.src_node.channelCount * 8));
+                this.ringbuf = new RingBuffer(new Float32Array(
+                // 1024 * 2 * 8 = 16384
+                buffer_samples_per_ch * this.src_node.channelCount * 8));
                 this.proc_node = this.context.createScriptProcessor(0, 1, this.src_node.channelCount);
                 this.proc_node.onaudioprocess = (ev) => {
                     this._onaudioprocess(ev);
                 };
                 this.src_node.connect(this.proc_node);
                 this.proc_node.connect(this.context.destination);
+                // 1024 * 2 = 2048
                 this.read_unit = buffer_samples_per_ch * this.src_node.channelCount;
+                // 24000, 2
                 resolve({
                     sampling_rate: this.context.sampleRate / 2,
                     num_of_channels: this.src_node.channelCount

@@ -10,6 +10,7 @@ export class Test {
   private static delay_period_count = 4;
   private static ringbuffer_period_count = Test.delay_period_count * 4;
 
+  // そのままInputをOutputに流す
   play(): void {
     this.init_player();
 
@@ -19,6 +20,7 @@ export class Test {
     reader.open(Test.period_size, open_params).then((info: IAudioInfo) => {
       this.player.onneedbuffer = () => {
         if (reader.in_flight) return;
+
         reader.read().then(
           (buf: IAudioBuffer) => {
             this.player
@@ -30,6 +32,7 @@ export class Test {
           }
         );
       };
+
       this.player
         .init(
           info.sampling_rate,
@@ -79,6 +82,7 @@ export class Test {
           )
         }
       };
+
       encoder.setup(enc_cfg).then((packets: Array<Packet>) => {
         decoder.setup({}, packets).then((info: IAudioInfo) => {
           this.player
@@ -136,6 +140,7 @@ export class Test {
     this.player = new WebAudioPlayer();
   }
 
+  // マイクかファイルかをInputとでき、どちらでも抽象化したAudioReaderを返す
   private get_reader(): [IAudioReader, any] {
     const radio_mic = document.getElementById("input_mic") as HTMLInputElement;
     const radio_file = document.getElementById(
