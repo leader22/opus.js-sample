@@ -2,7 +2,7 @@
 /// <reference path="typings/MediaStream.d.ts" />
 /// <reference path="ring_buffer.ts" />
 
-interface MediaStreamAudioSourceNode extends AudioNode {}
+type MediaStreamAudioSourceNode = AudioNode;
 interface AudioContext {
   createMediaStreamSource(strm: MediaStream): MediaStreamAudioSourceNode;
 }
@@ -19,7 +19,7 @@ class MicrophoneReader implements IAudioReader {
   open(buffer_samples_per_ch: number, params: any): Promise<IAudioInfo> {
     this.context = new AudioContext();
     return new Promise<IAudioInfo>((resolve, reject) => {
-      var callback = strm => {
+      const callback = strm => {
         this.src_node = this.context.createMediaStreamSource(strm);
         this.ringbuf = new RingBuffer(
           new Float32Array(
@@ -68,12 +68,12 @@ class MicrophoneReader implements IAudioReader {
   }
 
   private _onaudioprocess(ev: AudioProcessingEvent) {
-    var num_of_ch = ev.inputBuffer.numberOfChannels;
-    var samples_per_ch = ev.inputBuffer.getChannelData(0).length;
-    var data = new Float32Array(num_of_ch * samples_per_ch);
-    for (var i = 0; i < num_of_ch; ++i) {
-      var ch = ev.inputBuffer.getChannelData(i);
-      for (var j = 0; j < samples_per_ch; ++j) data[j * num_of_ch + i] = ch[j];
+    const num_of_ch = ev.inputBuffer.numberOfChannels;
+    const samples_per_ch = ev.inputBuffer.getChannelData(0).length;
+    const data = new Float32Array(num_of_ch * samples_per_ch);
+    for (let i = 0; i < num_of_ch; ++i) {
+      const ch = ev.inputBuffer.getChannelData(i);
+      for (let j = 0; j < samples_per_ch; ++j) data[j * num_of_ch + i] = ch[j];
     }
     this.ringbuf.append(data);
   }
@@ -81,9 +81,9 @@ class MicrophoneReader implements IAudioReader {
   read(): Promise<IAudioBuffer> {
     this.in_flight = true;
     return new Promise<IAudioBuffer>((resolve, reject) => {
-      var buf = new Float32Array(this.read_unit);
+      const buf = new Float32Array(this.read_unit);
       var func = () => {
-        var size = this.ringbuf.read_some(buf);
+        const size = this.ringbuf.read_some(buf);
         if (size == 0) {
           window.setTimeout(() => {
             func();

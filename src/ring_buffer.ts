@@ -30,7 +30,7 @@ class RingBuffer {
         return;
       }
 
-      var size = this._append_some(data);
+      const size = this._append_some(data);
       if (size == data.length) {
         resolve();
         return;
@@ -42,7 +42,7 @@ class RingBuffer {
   }
 
   read_some(output: TypedArray): number {
-    var ret = this._read_some(output);
+    let ret = this._read_some(output);
     if (this.remaining_write_data) {
       this._append_remaining_data();
       if (ret < output.length) ret += this._read_some(output.subarray(ret));
@@ -51,12 +51,12 @@ class RingBuffer {
   }
 
   private _append_some(data: TypedArray): number {
-    var total_size = Math.min(data.length, this.available());
+    const total_size = Math.min(data.length, this.available());
     if (total_size == 0) return 0;
 
     // 書き込み位置からバッファの終端まで書き込む
-    var pos = this.wpos % this.buf.length;
-    var size = Math.min(total_size, this.buf.length - pos);
+    const pos = this.wpos % this.buf.length;
+    const size = Math.min(total_size, this.buf.length - pos);
     this.buf.set(data.subarray(0, size), pos);
 
     // バッファの終端に達したが，書き込むデータがまだあるため
@@ -70,11 +70,11 @@ class RingBuffer {
   }
 
   private _append_remaining_data() {
-    var data = this.remaining_write_data[0];
-    var resolve = this.remaining_write_data[1];
+    const data = this.remaining_write_data[0];
+    const resolve = this.remaining_write_data[1];
     this.remaining_write_data = null;
 
-    var size = this._append_some(data);
+    const size = this._append_some(data);
     if (size == data.length) {
       resolve();
     } else {
@@ -83,12 +83,12 @@ class RingBuffer {
   }
 
   private _read_some(output: TypedArray): number {
-    var total_size = Math.min(output.length, this.size());
+    const total_size = Math.min(output.length, this.size());
     if (total_size == 0) return 0;
 
     // 読み込み位置からバッファ終端方向に読み込む
-    var pos = this.rpos % this.buf.length;
-    var size = Math.min(total_size, this.buf.length - pos);
+    const pos = this.rpos % this.buf.length;
+    const size = Math.min(total_size, this.buf.length - pos);
     output.set(this.buf.subarray(pos, pos + size), 0);
 
     // バッファの終端に達したが読み込むデータがまだあるため

@@ -36,7 +36,7 @@ class ResamplingWorker {
 
   process(input: Float32Array) {
     try {
-      var ret = new Float32Array(this.resampler.process(input));
+      const ret = new Float32Array(this.resampler.process(input));
       this.worker.postMessage(
         {
           status: 0,

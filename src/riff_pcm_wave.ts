@@ -1,6 +1,6 @@
 /// <reference path="api.d.ts" />
 class RiffPcmWaveReader implements IAudioReader {
-  in_flight: boolean = false;
+  in_flight = false;
 
   private file: File;
   private reader: FileReader;
@@ -19,7 +19,7 @@ class RiffPcmWaveReader implements IAudioReader {
   private buffer_samples_per_ch: number;
 
   // 読み込みカーソル位置(data_offsetからの相対位置)
-  private read_pos: number = 0;
+  private read_pos = 0;
 
   // readで返却するバッファ
   private output: Float32Array;
@@ -51,7 +51,7 @@ class RiffPcmWaveReader implements IAudioReader {
         (data: ArrayBuffer) => {
           this.in_flight = false;
           this.read_pos += data.byteLength;
-          var [samples, transferable] = this.convert(data);
+          const [samples, transferable] = this.convert(data);
           resolve({
             timestamp: 0,
             samples: samples,
@@ -72,25 +72,25 @@ class RiffPcmWaveReader implements IAudioReader {
   close() {}
 
   private readHeader(): Promise<IAudioInfo> {
-    var off = 0;
-    var state = 0;
-    var chunk_size = 0;
-    var found_fmt_chunk = false;
-    var found_data_chunk = false;
-    var info: IAudioInfo = {
+    let off = 0;
+    let state = 0;
+    let chunk_size = 0;
+    let found_fmt_chunk = false;
+    let found_data_chunk = false;
+    const info: IAudioInfo = {
       sampling_rate: 0,
       num_of_channels: 0
     };
 
-    var equals = (txt: string, bytes: Uint8Array): boolean => {
+    const equals = (txt: string, bytes: Uint8Array): boolean => {
       if (txt.length !== bytes.length) return false;
-      var txt2 = String.fromCharCode.apply(String, bytes);
+      const txt2 = String.fromCharCode.apply(String, bytes);
       return txt === txt2;
     };
 
     return new Promise<IAudioInfo>((resolve, reject) => {
       var parse = (data: ArrayBuffer) => {
-        var v8 = new Uint8Array(data);
+        const v8 = new Uint8Array(data);
         switch (state) {
           case 0: // RIFF Header
             if (
@@ -117,9 +117,8 @@ class RiffPcmWaveReader implements IAudioReader {
               if (found_fmt_chunk) {
                 resolve(info);
                 return;
-              } else {
-                found_data_chunk = true;
               }
+              found_data_chunk = true;
             }
             off += chunk_size;
             this.readBytes(off, 8).then(parse, reject);
@@ -180,7 +179,7 @@ class RiffPcmWaveReader implements IAudioReader {
   private readBytes(offset: number, bytes: number): Promise<ArrayBuffer> {
     return new Promise<ArrayBuffer>((resolve, reject) => {
       this.reader.onloadend = ev => {
-        var ret = this.reader.result;
+        const ret = this.reader.result;
         if (ret) {
           resolve(ret);
         } else {
@@ -194,47 +193,44 @@ class RiffPcmWaveReader implements IAudioReader {
   }
 
   private convert_from_i8(data: ArrayBuffer): [Float32Array, boolean] {
-    var view = new Int8Array(data);
-    var out = this.output;
-    for (var i = 0; i < view.length; ++i) {
+    const view = new Int8Array(data);
+    const out = this.output;
+    for (let i = 0; i < view.length; ++i) {
       out[i] = view[i] / 128.0;
     }
     if (view.length != out.length) {
       return [out.subarray(0, view.length), false];
-    } else {
-      return [out, false];
     }
+    return [out, false];
   }
 
   private convert_from_i16(data: ArrayBuffer): [Float32Array, boolean] {
-    var view = new Int16Array(data);
-    var out = this.output;
-    for (var i = 0; i < view.length; ++i) {
+    const view = new Int16Array(data);
+    const out = this.output;
+    for (let i = 0; i < view.length; ++i) {
       out[i] = view[i] / 32768.0;
     }
     if (view.length != out.length) {
       return [out.subarray(0, view.length), false];
-    } else {
-      return [out, false];
     }
+    return [out, false];
   }
 
   private convert_from_i24(data: ArrayBuffer): [Float32Array, boolean] {
-    var v0 = new Int8Array(data);
-    var v1 = new Uint8Array(data);
-    var out = this.output;
-    var out_samples = v0.length / 3;
-    for (var i = 0; i < out_samples; ++i) {
-      var lo = v1[i * 3];
-      var md = v1[i * 3 + 1] << 8;
-      var hi = v0[i * 3 + 2] << 16;
+    const v0 = new Int8Array(data);
+    const v1 = new Uint8Array(data);
+    const out = this.output;
+    const out_samples = v0.length / 3;
+    for (let i = 0; i < out_samples; ++i) {
+      const lo = v1[i * 3];
+      const md = v1[i * 3 + 1] << 8;
+      const hi = v0[i * 3 + 2] << 16;
       out[i] = (hi | md | lo) / 8388608.0;
     }
     if (out_samples != out.length) {
       return [out.subarray(0, out_samples), false];
-    } else {
-      return [out, false];
     }
+    return [out, false];
   }
 
   private convert_from_f32(data: ArrayBuffer): [Float32Array, boolean] {

@@ -5,9 +5,9 @@ class WebAudioPlayer {
   private context: AudioContext;
   private node: ScriptProcessorNode;
   private resampler: Worker;
-  private in_writing: boolean = false;
+  private in_writing = false;
 
-  private buffering: boolean = true;
+  private buffering = true;
   private ringbuf: RingBuffer;
   private period_samples: number;
   private delay_samples: number;
@@ -76,7 +76,7 @@ class WebAudioPlayer {
         return;
       }
       this.in_writing = true;
-      var func = (data: Float32Array) => {
+      const func = (data: Float32Array) => {
         this.ringbuf.append(data).then(
           () => {
             this.in_writing = false;
@@ -89,7 +89,7 @@ class WebAudioPlayer {
         );
       };
       if (this.resampler) {
-        var transfer_list = buf.transferable ? [buf.samples.buffer] : [];
+        const transfer_list = buf.transferable ? [buf.samples.buffer] : [];
         this.resampler.onmessage = ev => {
           if (ev.data.status != 0) {
             this.in_writing = false;
@@ -115,20 +115,20 @@ class WebAudioPlayer {
       this.check_buffer();
       return;
     }
-    var N = ev.outputBuffer.numberOfChannels;
-    var buf = new Float32Array(ev.outputBuffer.getChannelData(0).length * N);
-    var size = this.ringbuf.read_some(buf) / N;
-    for (var i = 0; i < N; ++i) {
-      var ch = ev.outputBuffer.getChannelData(i);
-      for (var j = 0; j < size; ++j) ch[j] = buf[j * N + i];
+    const N = ev.outputBuffer.numberOfChannels;
+    const buf = new Float32Array(ev.outputBuffer.getChannelData(0).length * N);
+    const size = this.ringbuf.read_some(buf) / N;
+    for (let i = 0; i < N; ++i) {
+      const ch = ev.outputBuffer.getChannelData(i);
+      for (let j = 0; j < size; ++j) ch[j] = buf[j * N + i];
     }
     this.check_buffer(true);
   }
 
   private in_requesting_check_buffer = false;
-  private check_buffer(useTimeOut: boolean = false): void {
+  private check_buffer(useTimeOut = false): void {
     if (this.in_requesting_check_buffer || !this.onneedbuffer) return;
-    var needbuf = this.check_buffer_internal();
+    const needbuf = this.check_buffer_internal();
     if (!needbuf) return;
     if (useTimeOut) {
       this.in_requesting_check_buffer = true;
@@ -143,8 +143,8 @@ class WebAudioPlayer {
 
   private check_buffer_internal(): boolean {
     if (this.in_writing) return false;
-    var avail = this.ringbuf.available();
-    var size = this.ringbuf.size();
+    const avail = this.ringbuf.available();
+    const size = this.ringbuf.size();
     if (size >= this.delay_samples) this.buffering = false;
     if (this.period_samples <= avail) return true;
     return false;

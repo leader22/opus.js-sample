@@ -43,17 +43,17 @@ class OpusDecoder {
     }
 
     // https://wiki.xiph.org/OggOpus
-    var invalid = false;
-    var view8 = new Uint8Array(packets[0].data);
-    var view32 = new Uint32Array(packets[0].data, 12, 1);
-    var magic = "OpusHead";
-    for (var i = 0; i < magic.length; ++i) {
+    let invalid = false;
+    const view8 = new Uint8Array(packets[0].data);
+    const view32 = new Uint32Array(packets[0].data, 12, 1);
+    const magic = "OpusHead";
+    for (let i = 0; i < magic.length; ++i) {
       if (view8[i] != magic.charCodeAt(i)) invalid = true;
     }
     invalid = invalid || view8[8] != 1;
     this.channels = view8[9];
     invalid = invalid || this.channels == 0 || this.channels > 2;
-    var sampling_rate = view32[0];
+    const sampling_rate = view32[0];
     invalid = invalid || view8[18] != 0;
     if (invalid) {
       this.worker.postMessage(<IResult>{
@@ -63,9 +63,9 @@ class OpusDecoder {
       return;
     }
 
-    var err = Module._malloc(4);
+    const err = Module._malloc(4);
     this.handle = _opus_decoder_create(sampling_rate, this.channels, err);
-    var err_num = Module.getValue(err, "i32");
+    const err_num = Module.getValue(err, "i32");
     Module._free(err);
     if (err_num != 0) {
       this.worker.postMessage(<IResult>{
@@ -75,8 +75,8 @@ class OpusDecoder {
     }
 
     this.frame_size = (sampling_rate * 60) /* max frame duration[ms] */ / 1000;
-    var buf_size = 1275 * 3 + 7;
-    var pcm_samples = this.frame_size * this.channels;
+    const buf_size = 1275 * 3 + 7;
+    const pcm_samples = this.frame_size * this.channels;
     this.buf_ptr = Module._malloc(buf_size);
     this.pcm_ptr = Module._malloc(4 * pcm_samples);
     this.buf = Module.HEAPU8.subarray(this.buf_ptr, this.buf_ptr + buf_size);
@@ -97,7 +97,7 @@ class OpusDecoder {
 
   decode(packet: Packet) {
     this.buf.set(new Uint8Array(packet.data));
-    var ret = _opus_decode_float(
+    const ret = _opus_decode_float(
       this.handle,
       this.buf_ptr,
       packet.data.byteLength,
@@ -112,7 +112,7 @@ class OpusDecoder {
       return;
     }
 
-    var buf: IAudioBuffer & IResult = {
+    const buf: IAudioBuffer & IResult = {
       status: 0,
       timestamp: 0,
       samples: new Float32Array(this.pcm.subarray(0, ret * this.channels)),

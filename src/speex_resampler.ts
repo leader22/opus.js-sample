@@ -2,7 +2,7 @@
 ///<reference path="typings/libspeexdsp.d.ts" />
 
 class SpeexResampler {
-  private handle: number = 0;
+  private handle = 0;
   private channels: number;
   private in_rate: number;
   private out_rate: number;
@@ -13,23 +13,23 @@ class SpeexResampler {
     samples: number
   ) => void;
 
-  private in_ptr: number = 0;
-  private out_ptr: number = 0;
-  private in_capacity: number = 0;
-  private in_len_ptr: number = 0;
-  private out_len_ptr: number = 0;
+  private in_ptr = 0;
+  private out_ptr = 0;
+  private in_capacity = 0;
+  private in_len_ptr = 0;
+  private out_len_ptr = 0;
 
   constructor(
     channels: number,
     in_rate: number,
     out_rate: number,
-    quality: number = 5
+    quality = 5
   ) {
     this.channels = channels;
     this.in_rate = in_rate;
     this.out_rate = out_rate;
 
-    var err_ptr = Module._malloc(4);
+    const err_ptr = Module._malloc(4);
     this.handle = _speex_resampler_init(
       channels,
       in_rate,
@@ -48,9 +48,9 @@ class SpeexResampler {
 
   process(input: Float32Array): Float32Array {
     if (!this.handle) throw "disposed object";
-    var samples = input.length;
-    var outSamples = Math.ceil((samples * this.out_rate) / this.in_rate);
-    var requireSize = samples * 4;
+    const samples = input.length;
+    const outSamples = Math.ceil((samples * this.out_rate) / this.in_rate);
+    const requireSize = samples * 4;
     if (this.in_capacity < requireSize) {
       if (this.in_ptr) Module._free(this.in_ptr);
       if (this.out_ptr) Module._free(this.out_ptr);
@@ -59,7 +59,7 @@ class SpeexResampler {
       this.in_capacity = requireSize;
     }
 
-    var ret;
+    let ret;
     Module.setValue(this.in_len_ptr, samples / this.channels, "i32");
     Module.setValue(this.out_len_ptr, outSamples / this.channels, "i32");
     if (input.buffer == Module.HEAPF32.buffer) {
@@ -83,7 +83,8 @@ class SpeexResampler {
     if (ret != 0)
       throw "speex_resampler_process_interleaved_float failed: " + ret;
 
-    var ret_samples = Module.getValue(this.out_len_ptr, "i32") * this.channels;
+    const ret_samples =
+      Module.getValue(this.out_len_ptr, "i32") * this.channels;
     return Module.HEAPF32.subarray(
       this.out_ptr >> 2,
       (this.out_ptr >> 2) + ret_samples

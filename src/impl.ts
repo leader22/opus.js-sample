@@ -41,8 +41,8 @@ class AudioDecoder {
   }
 
   setup(cfg: any, packets: Array<Packet>): Promise<IAudioInfo> {
-    var transfer_list = [];
-    for (var i = 0; i < packets.length; ++i)
+    const transfer_list = [];
+    for (let i = 0; i < packets.length; ++i)
       transfer_list.push(packets[i].data);
     return new Promise<IAudioInfo>((resolve, reject) => {
       this.worker.onmessage = ev => {

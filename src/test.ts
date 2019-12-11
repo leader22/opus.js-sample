@@ -21,7 +21,7 @@ class Test {
 
   private play(): void {
     this.init_player();
-    var [reader, open_params] = this.get_reader();
+    const [reader, open_params] = this.get_reader();
     if (!reader) return;
     reader.open(Test.period_size, open_params).then((info: IAudioInfo) => {
       this.player.onneedbuffer = () => {
@@ -56,14 +56,14 @@ class Test {
 
   private encode_decode_play(): void {
     this.init_player();
-    var [reader, open_params] = this.get_reader();
+    const [reader, open_params] = this.get_reader();
     if (!reader) return;
-    var working = false;
-    var packet_queue = [];
-    var encoder = new AudioEncoder("opus_encoder.js");
-    var decoder = new AudioDecoder("opus_decoder.js");
+    let working = false;
+    const packet_queue = [];
+    const encoder = new AudioEncoder("opus_encoder.js");
+    const decoder = new AudioDecoder("opus_decoder.js");
     reader.open(Test.period_size, open_params).then((info: IAudioInfo) => {
-      var enc_cfg = {
+      const enc_cfg = {
         sampling_rate: info.sampling_rate,
         num_of_channels: info.num_of_channels,
         params: {
@@ -107,7 +107,7 @@ class Test {
       if (reader.in_flight || working) return;
       working = true;
       if (packet_queue.length > 0) {
-        var packet = packet_queue.shift();
+        const packet = packet_queue.shift();
         decoder.decode(packet).then((buf: IAudioBuffer) => {
           this.player
             .enqueue(buf)
@@ -121,7 +121,7 @@ class Test {
               working = false;
               return;
             }
-            for (var i = 1; i < packets.length; ++i)
+            for (let i = 1; i < packets.length; ++i)
               packet_queue.push(packets[i]);
             decoder.decode(packets[0]).then((buf: IAudioBuffer) => {
               this.player
@@ -141,15 +141,15 @@ class Test {
   }
 
   private get_reader(): [IAudioReader, any] {
-    var radio_mic = <HTMLInputElement>document.getElementById("input_mic");
-    var radio_file = <HTMLInputElement>document.getElementById("input_file");
-    var reader: IAudioReader = null;
-    var params: any = null;
+    const radio_mic = <HTMLInputElement>document.getElementById("input_mic");
+    const radio_file = <HTMLInputElement>document.getElementById("input_file");
+    let reader: IAudioReader = null;
+    let params: any = null;
     if (radio_mic.checked) {
       reader = new MicrophoneReader();
       params = {};
     } else if (radio_file.checked) {
-      var input_file = <HTMLInputElement>(
+      const input_file = <HTMLInputElement>(
         document.getElementById("input_filedata")
       );
       if (input_file.files.length != 1) {
@@ -175,6 +175,6 @@ class Test {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  var app = new Test();
+  const app = new Test();
   app.setup();
 });
