@@ -15,7 +15,8 @@
     "typescript": "^3.7.3"
   },
   "scripts": {
-    "lint": "eslint --ext .ts ./src"
+    "lint": "eslint --ext .ts ./src",
+    "build": "tsc --outDir ./dist src/*"
   },
   "repository": {
     "type": "git",
