@@ -1,10 +1,11 @@
 /// <reference path="api.d.ts" />
 /// <reference path="riff_pcm_wave.ts" />
 /// <reference path="microphone.ts" />
-/// <reference path="player.ts" />
 /// <reference path="impl.ts" />
 
-class Test {
+import { WebAudioPlayer } from "./player.js";
+
+export class Test {
   private player: IPlayer = null;
   private static period_size = 1024;
   private static delay_period_count = 4;
@@ -12,8 +13,10 @@ class Test {
 
   play(): void {
     this.init_player();
+
     const [reader, open_params] = this.get_reader();
     if (!reader) return;
+
     reader.open(Test.period_size, open_params).then((info: IAudioInfo) => {
       this.player.onneedbuffer = () => {
         if (reader.in_flight) return;
@@ -164,5 +167,3 @@ class Test {
     };
   }
 }
-
-export default Test;

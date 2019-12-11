@@ -1,6 +1,6 @@
-import App from "./app.js";
+import { Test } from "./app.js";
 
-const app = new App();
+const app = new Test();
 
 document.getElementById("play").addEventListener("click", () => {
   app.play();

@@ -1,7 +1,7 @@
 /// <reference path="api.d.ts" />
 /// <reference path="ring_buffer.ts" />
 
-class WebAudioPlayer {
+export class WebAudioPlayer {
   private context: AudioContext;
   private node: ScriptProcessorNode;
   private resampler: Worker;
