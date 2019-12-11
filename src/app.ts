@@ -4,7 +4,7 @@
 /// <reference path="player.ts" />
 /// <reference path="impl.ts" />
 
-class App {
+class Test {
   private player: IPlayer = null;
   private static period_size = 1024;
   private static delay_period_count = 4;
@@ -165,4 +165,4 @@ class App {
   }
 }
 
-export default App;
+export default Test;

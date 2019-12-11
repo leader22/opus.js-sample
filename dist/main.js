@@ -1,4 +1,4 @@
-import App from "./app";
+import App from "./app.js";
 var app = new App();
 document.getElementById("play").addEventListener("click", function () {
     app.play();
