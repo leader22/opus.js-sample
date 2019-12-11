@@ -54,3 +54,10 @@ Makefileを用意してありますので，以下のコマンドを実行して
 ----------
 
 修正BSDライセンス
+
+TODO
+----
+
+- Worker(this)
+- Module deps for Emscripten
+- Actural Emscripten modules

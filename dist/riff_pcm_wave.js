@@ -1,73 +1,72 @@
-/// <reference path="api.d.ts" />
-var RiffPcmWaveReader = /** @class */ (function () {
-    function RiffPcmWaveReader() {
+export class RiffPcmWaveReader {
+    constructor() {
         this.in_flight = false;
         // 読み込みカーソル位置(data_offsetからの相対位置)
         this.read_pos = 0;
         this.reader = new FileReader();
     }
-    RiffPcmWaveReader.prototype.open = function (buffer_samples_per_ch, params) {
-        var _this = this;
+    open(buffer_samples_per_ch, params) {
         this.buffer_samples_per_ch = buffer_samples_per_ch;
-        return new Promise(function (resolve, reject) {
-            _this.file = params.file;
-            if (!(_this.file instanceof File)) {
+        return new Promise((resolve, reject) => {
+            this.file = params.file;
+            if (!(this.file instanceof File)) {
                 reject("invalid params");
                 return;
             }
-            _this.readHeader().then(resolve, reject);
+            this.readHeader().then(resolve, reject);
         });
-    };
-    RiffPcmWaveReader.prototype.read = function () {
-        var _this = this;
+    }
+    read() {
         this.in_flight = true;
-        return new Promise(function (resolve, reject) {
-            _this.readBytes(_this.data_offset + _this.read_pos, _this.buffer_bytes).then(function (data) {
-                _this.in_flight = false;
-                _this.read_pos += data.byteLength;
-                var _a = _this.convert(data), samples = _a[0], transferable = _a[1];
+        return new Promise((resolve, reject) => {
+            this.readBytes(this.data_offset + this.read_pos, this.buffer_bytes).then((data) => {
+                this.in_flight = false;
+                this.read_pos += data.byteLength;
+                const [samples, transferable] = this.convert(data);
                 resolve({
                     timestamp: 0,
                     samples: samples,
                     transferable: transferable
                 });
-            }, function (e) {
+            }, e => {
                 reject({
-                    pos: _this.data_offset + _this.read_pos,
-                    len: _this.buffer_bytes,
+                    pos: this.data_offset + this.read_pos,
+                    len: this.buffer_bytes,
                     reason: e.reason
                 });
             });
         });
-    };
-    RiffPcmWaveReader.prototype.close = function () { };
-    RiffPcmWaveReader.prototype.readHeader = function () {
-        var _this = this;
-        var off = 0;
-        var state = 0;
-        var chunk_size = 0;
-        var found_fmt_chunk = false;
-        var found_data_chunk = false;
-        var info = {
+    }
+    close() {
+        console.log("not implemented!");
+    }
+    readHeader() {
+        let off = 0;
+        let state = 0;
+        let chunk_size = 0;
+        let found_fmt_chunk = false;
+        let found_data_chunk = false;
+        const info = {
             sampling_rate: 0,
             num_of_channels: 0
         };
-        var equals = function (txt, bytes) {
+        const equals = (txt, bytes) => {
             if (txt.length !== bytes.length)
                 return false;
-            var txt2 = String.fromCharCode.apply(String, bytes);
+            // const txt2 = String.fromCharCode.apply(String, bytes);
+            const txt2 = String.fromCharCode(...bytes);
             return txt === txt2;
         };
-        return new Promise(function (resolve, reject) {
-            var parse = function (data) {
-                var v8 = new Uint8Array(data);
+        return new Promise((resolve, reject) => {
+            const parse = (data) => {
+                const v8 = new Uint8Array(data);
                 switch (state) {
                     case 0: // RIFF Header
                         if (equals("RIFF", v8.subarray(0, 4)) &&
                             equals("WAVE", v8.subarray(8, 12))) {
                             state = 1;
                             off = 12;
-                            _this.readBytes(off, 8).then(parse, reject);
+                            this.readBytes(off, 8).then(parse, reject);
                         }
                         else {
                             reject("invalid RIFF");
@@ -78,12 +77,12 @@ var RiffPcmWaveReader = /** @class */ (function () {
                         if (equals("fmt ", v8.subarray(0, 4))) {
                             state = 2;
                             off += 8;
-                            _this.readBytes(off, chunk_size).then(parse, reject);
+                            this.readBytes(off, chunk_size).then(parse, reject);
                             return;
                         }
                         else if (equals("data", v8.subarray(0, 4))) {
-                            _this.data_offset = off + 8;
-                            _this.data_bytes = chunk_size;
+                            this.data_offset = off + 8;
+                            this.data_bytes = chunk_size;
                             if (found_fmt_chunk) {
                                 resolve(info);
                                 return;
@@ -91,7 +90,7 @@ var RiffPcmWaveReader = /** @class */ (function () {
                             found_data_chunk = true;
                         }
                         off += chunk_size;
-                        _this.readBytes(off, 8).then(parse, reject);
+                        this.readBytes(off, 8).then(parse, reject);
                         return;
                     case 2: // parse fmd chunk
                         var v16 = new Uint16Array(data);
@@ -102,35 +101,35 @@ var RiffPcmWaveReader = /** @class */ (function () {
                         }
                         info.num_of_channels = v16[1];
                         info.sampling_rate = v32[1];
-                        _this.bits_per_sample = v16[7];
-                        _this.convert = null;
+                        this.bits_per_sample = v16[7];
+                        this.convert = null;
                         if (v16[0] == 1) {
                             // Integer PCM
-                            if (_this.bits_per_sample == 8) {
-                                _this.convert = _this.convert_from_i8;
+                            if (this.bits_per_sample == 8) {
+                                this.convert = this.convert_from_i8;
                             }
-                            else if (_this.bits_per_sample == 16) {
-                                _this.convert = _this.convert_from_i16;
+                            else if (this.bits_per_sample == 16) {
+                                this.convert = this.convert_from_i16;
                             }
-                            else if (_this.bits_per_sample == 24) {
-                                _this.convert = _this.convert_from_i24;
+                            else if (this.bits_per_sample == 24) {
+                                this.convert = this.convert_from_i24;
                             }
                         }
                         else if (v16[0] == 3) {
                             // Floating-point PCM
-                            if (_this.bits_per_sample == 32) {
-                                _this.convert = _this.convert_from_f32;
+                            if (this.bits_per_sample == 32) {
+                                this.convert = this.convert_from_f32;
                             }
                         }
-                        if (!_this.convert) {
+                        if (!this.convert) {
                             reject("not supported format");
                             return;
                         }
-                        _this.buffer_bytes =
-                            _this.buffer_samples_per_ch *
-                                (_this.bits_per_sample / 8) *
+                        this.buffer_bytes =
+                            this.buffer_samples_per_ch *
+                                (this.bits_per_sample / 8) *
                                 info.num_of_channels;
-                        _this.output = new Float32Array(_this.buffer_samples_per_ch * info.num_of_channels);
+                        this.output = new Float32Array(this.buffer_samples_per_ch * info.num_of_channels);
                         if (found_data_chunk) {
                             resolve(info);
                         }
@@ -138,72 +137,70 @@ var RiffPcmWaveReader = /** @class */ (function () {
                             state = 1;
                             off += chunk_size;
                             found_fmt_chunk = true;
-                            _this.readBytes(off, 8).then(parse, reject);
+                            this.readBytes(off, 8).then(parse, reject);
                         }
                         return;
                 }
             };
             off = 0;
-            _this.readBytes(off, 12).then(parse, reject);
+            this.readBytes(off, 12).then(parse, reject);
         });
-    };
-    RiffPcmWaveReader.prototype.readBytes = function (offset, bytes) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.reader.onloadend = function (ev) {
-                var ret = _this.reader.result;
+    }
+    readBytes(offset, bytes) {
+        return new Promise((resolve, reject) => {
+            this.reader.onloadend = ev => {
+                const ret = this.reader.result;
                 if (ret) {
                     resolve(ret);
                 }
                 else {
                     reject({
-                        reason: _this.reader.error
+                        reason: this.reader.error
                     });
                 }
             };
-            _this.reader.readAsArrayBuffer(_this.file.slice(offset, offset + bytes));
+            this.reader.readAsArrayBuffer(this.file.slice(offset, offset + bytes));
         });
-    };
-    RiffPcmWaveReader.prototype.convert_from_i8 = function (data) {
-        var view = new Int8Array(data);
-        var out = this.output;
-        for (var i = 0; i < view.length; ++i) {
+    }
+    convert_from_i8(data) {
+        const view = new Int8Array(data);
+        const out = this.output;
+        for (let i = 0; i < view.length; ++i) {
             out[i] = view[i] / 128.0;
         }
         if (view.length != out.length) {
             return [out.subarray(0, view.length), false];
         }
         return [out, false];
-    };
-    RiffPcmWaveReader.prototype.convert_from_i16 = function (data) {
-        var view = new Int16Array(data);
-        var out = this.output;
-        for (var i = 0; i < view.length; ++i) {
+    }
+    convert_from_i16(data) {
+        const view = new Int16Array(data);
+        const out = this.output;
+        for (let i = 0; i < view.length; ++i) {
             out[i] = view[i] / 32768.0;
         }
         if (view.length != out.length) {
             return [out.subarray(0, view.length), false];
         }
         return [out, false];
-    };
-    RiffPcmWaveReader.prototype.convert_from_i24 = function (data) {
-        var v0 = new Int8Array(data);
-        var v1 = new Uint8Array(data);
-        var out = this.output;
-        var out_samples = v0.length / 3;
-        for (var i = 0; i < out_samples; ++i) {
-            var lo = v1[i * 3];
-            var md = v1[i * 3 + 1] << 8;
-            var hi = v0[i * 3 + 2] << 16;
+    }
+    convert_from_i24(data) {
+        const v0 = new Int8Array(data);
+        const v1 = new Uint8Array(data);
+        const out = this.output;
+        const out_samples = v0.length / 3;
+        for (let i = 0; i < out_samples; ++i) {
+            const lo = v1[i * 3];
+            const md = v1[i * 3 + 1] << 8;
+            const hi = v0[i * 3 + 2] << 16;
             out[i] = (hi | md | lo) / 8388608.0;
         }
         if (out_samples != out.length) {
             return [out.subarray(0, out_samples), false];
         }
         return [out, false];
-    };
-    RiffPcmWaveReader.prototype.convert_from_f32 = function (data) {
+    }
+    convert_from_f32(data) {
         return [new Float32Array(data), true];
-    };
-    return RiffPcmWaveReader;
-}());
+    }
+}

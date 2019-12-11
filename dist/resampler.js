@@ -1,23 +1,21 @@
-///<reference path="typings/emscripten.d.ts" />
-/// <reference path="speex_resampler.ts" />
-var ResamplingWorker = /** @class */ (function () {
-    function ResamplingWorker(worker) {
-        var _this = this;
+importScripts("./speex_resampler.js");
+class ResamplingWorker {
+    constructor(worker) {
         this.resampler = null;
         this.worker = worker;
-        this.worker.onmessage = function (e) {
-            _this.setup(e.data);
+        this.worker.onmessage = (e) => {
+            this.setup(e.data);
         };
     }
-    ResamplingWorker.prototype.setup = function (config) {
-        var _this = this;
+    setup(config) {
         try {
+            // eslint-disable-next-line no-undef
             this.resampler = new SpeexResampler(config.channels, config.in_sampling_rate, config.out_sampling_rate, config.quality || 5);
             this.worker.postMessage({
                 status: 0
             });
-            this.worker.onmessage = function (e) {
-                _this.process(e.data.samples);
+            this.worker.onmessage = (e) => {
+                this.process(e.data.samples);
             };
         }
         catch (e) {
@@ -26,10 +24,10 @@ var ResamplingWorker = /** @class */ (function () {
                 reason: e
             });
         }
-    };
-    ResamplingWorker.prototype.process = function (input) {
+    }
+    process(input) {
         try {
-            var ret = new Float32Array(this.resampler.process(input));
+            const ret = new Float32Array(this.resampler.process(input));
             this.worker.postMessage({
                 status: 0,
                 result: ret
@@ -41,7 +39,6 @@ var ResamplingWorker = /** @class */ (function () {
                 reason: e
             });
         }
-    };
-    return ResamplingWorker;
-}());
+    }
+}
 new ResamplingWorker(this);

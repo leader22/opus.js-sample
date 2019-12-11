@@ -1,19 +1,23 @@
-///<reference path="typings/emscripten.d.ts" />
-/// <reference path="speex_resampler.ts" />
+importScripts("./speex_resampler.js");
+
+interface ISpeexResampler {
+  process(input: Float32Array): Float32Array;
+}
 
 class ResamplingWorker {
   worker: Worker;
-  resampler: SpeexResampler = null;
+  resampler: ISpeexResampler = null;
 
   constructor(worker: Worker) {
     this.worker = worker;
     this.worker.onmessage = (e: MessageEvent) => {
-      this.setup(<any>e.data);
+      this.setup(e.data);
     };
   }
 
   setup(config: any) {
     try {
+      // eslint-disable-next-line no-undef
       this.resampler = new SpeexResampler(
         config.channels,
         config.in_sampling_rate,
@@ -24,7 +28,7 @@ class ResamplingWorker {
         status: 0
       });
       this.worker.onmessage = (e: MessageEvent) => {
-        this.process(<Float32Array>e.data.samples);
+        this.process(e.data.samples as Float32Array);
       };
     } catch (e) {
       this.worker.postMessage({
@@ -52,4 +56,5 @@ class ResamplingWorker {
     }
   }
 }
+
 new ResamplingWorker(this);

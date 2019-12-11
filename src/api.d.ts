@@ -1,15 +1,15 @@
-interface IAudioInfo {
+export interface IAudioInfo {
   sampling_rate: number;
   num_of_channels: number;
 }
 
-interface IAudioBuffer {
+export interface IAudioBuffer {
   timestamp: number;
   samples: Float32Array;
   transferable: boolean;
 }
 
-interface IAudioReader {
+export interface IAudioReader {
   /*
    * Arguments:
    *     buffer_samples_per_ch: readで読み込むチャンネルあたりのサンプル数を指定．
@@ -24,7 +24,7 @@ interface IAudioReader {
   in_flight: boolean;
 }
 
-interface IPlayer {
+export interface IPlayer {
   // 再生バッファが足りない時に発生するイベント
   onneedbuffer: { (): void };
 
@@ -62,31 +62,31 @@ interface IPlayer {
   getBufferStatus(): IPlayerBufferStatus;
 }
 
-interface IPlayerBufferStatus {
+export interface IPlayerBufferStatus {
   delay: number;
   available: number;
   capacity: number;
 }
 
-interface IAudioEncoderConfig extends IAudioInfo {
+export interface IAudioEncoderConfig extends IAudioInfo {
   params: any;
 }
 
-interface Packet {
+export interface Packet {
   data: ArrayBuffer;
 }
 
-interface IResult {
+export interface IResult {
   status: number;
   reason?: string;
 }
 
-interface IAudioEncoder {
+export interface IAudioEncoder {
   setup(cfg: IAudioEncoderConfig): Promise<Array<Packet>>;
   encode(data: IAudioBuffer): Promise<Array<Packet>>;
 }
 
-interface IAudioDecoder {
+export interface IAudioDecoder {
   setup(cfg: any, packets: Array<Packet>): Promise<IAudioInfo>;
   decode(packet: Packet): Promise<IAudioBuffer>;
 }

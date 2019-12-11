@@ -1,13 +1,7 @@
-/// <reference path="api.d.ts" />
-/// <reference path="typings/MediaStream.d.ts" />
-/// <reference path="ring_buffer.ts" />
+import { IAudioReader, IAudioInfo, IAudioBuffer } from "./api";
+import { RingBuffer } from "./ring_buffer.js";
 
-type MediaStreamAudioSourceNode = AudioNode;
-interface AudioContext {
-  createMediaStreamSource(strm: MediaStream): MediaStreamAudioSourceNode;
-}
-
-class MicrophoneReader implements IAudioReader {
+export class MicrophoneReader implements IAudioReader {
   in_flight: boolean;
 
   private context: AudioContext;
@@ -42,28 +36,10 @@ class MicrophoneReader implements IAudioReader {
           num_of_channels: this.src_node.channelCount
         });
       };
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({
-            audio: true,
-            video: false
-          })
-          .then(callback, reject);
-      } else {
-        navigator.getUserMedia =
-          navigator.getUserMedia ||
-          navigator.webkitGetUserMedia ||
-          navigator.mozGetUserMedia ||
-          navigator.msGetUserMedia;
-        navigator.getUserMedia(
-          {
-            audio: true,
-            video: false
-          },
-          callback,
-          reject
-        );
-      }
+
+      navigator.mediaDevices
+        .getUserMedia({ audio: true, video: false })
+        .then(callback, reject);
     });
   }
 
@@ -82,7 +58,7 @@ class MicrophoneReader implements IAudioReader {
     this.in_flight = true;
     return new Promise<IAudioBuffer>((resolve, reject) => {
       const buf = new Float32Array(this.read_unit);
-      var func = () => {
+      const func = () => {
         const size = this.ringbuf.read_some(buf);
         if (size == 0) {
           window.setTimeout(() => {
@@ -97,9 +73,12 @@ class MicrophoneReader implements IAudioReader {
           transferable: true
         });
       };
+
       func();
     });
   }
 
-  close() {}
+  close() {
+    console.log("not implemented");
+  }
 }

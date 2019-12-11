@@ -1,5 +1,6 @@
-/// <reference path="api.d.ts" />
-class RiffPcmWaveReader implements IAudioReader {
+import { IAudioReader, IAudioInfo, IAudioBuffer } from "./api";
+
+export class RiffPcmWaveReader implements IAudioReader {
   in_flight = false;
 
   private file: File;
@@ -69,7 +70,9 @@ class RiffPcmWaveReader implements IAudioReader {
     });
   }
 
-  close() {}
+  close() {
+    console.log("not implemented!");
+  }
 
   private readHeader(): Promise<IAudioInfo> {
     let off = 0;
@@ -84,12 +87,13 @@ class RiffPcmWaveReader implements IAudioReader {
 
     const equals = (txt: string, bytes: Uint8Array): boolean => {
       if (txt.length !== bytes.length) return false;
-      const txt2 = String.fromCharCode.apply(String, bytes);
+      // const txt2 = String.fromCharCode.apply(String, bytes);
+      const txt2 = String.fromCharCode(...bytes);
       return txt === txt2;
     };
 
     return new Promise<IAudioInfo>((resolve, reject) => {
-      var parse = (data: ArrayBuffer) => {
+      const parse = (data: ArrayBuffer) => {
         const v8 = new Uint8Array(data);
         switch (state) {
           case 0: // RIFF Header
@@ -181,7 +185,7 @@ class RiffPcmWaveReader implements IAudioReader {
       this.reader.onloadend = ev => {
         const ret = this.reader.result;
         if (ret) {
-          resolve(ret);
+          resolve(ret as ArrayBuffer);
         } else {
           reject({
             reason: this.reader.error

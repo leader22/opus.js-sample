@@ -1,5 +1,5 @@
-/// <reference path="api.d.ts" />
-/// <reference path="ring_buffer.ts" />
+import { IAudioBuffer, IPlayerBufferStatus } from "./api";
+import { RingBuffer } from "./ring_buffer.js";
 
 export class WebAudioPlayer {
   private context: AudioContext;

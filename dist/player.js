@@ -1,36 +1,34 @@
-/// <reference path="api.d.ts" />
-/// <reference path="ring_buffer.ts" />
-var WebAudioPlayer = /** @class */ (function () {
-    function WebAudioPlayer() {
+import { RingBuffer } from "./ring_buffer.js";
+export class WebAudioPlayer {
+    constructor() {
         this.in_writing = false;
         this.buffering = true;
         this.onneedbuffer = null;
         this.in_requesting_check_buffer = false;
     }
-    WebAudioPlayer.prototype.init = function (sampling_rate, num_of_channels, period_samples, delay_periods, buffer_periods) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.context = new AudioContext();
-            _this.node = _this.context.createScriptProcessor(period_samples, 0, num_of_channels);
-            _this.node.onaudioprocess = function (ev) {
-                _this._onaudioprocess(ev);
+    init(sampling_rate, num_of_channels, period_samples, delay_periods, buffer_periods) {
+        return new Promise((resolve, reject) => {
+            this.context = new AudioContext();
+            this.node = this.context.createScriptProcessor(period_samples, 0, num_of_channels);
+            this.node.onaudioprocess = ev => {
+                this._onaudioprocess(ev);
             };
-            if (sampling_rate != _this.getActualSamplingRate()) {
+            if (sampling_rate != this.getActualSamplingRate()) {
                 console.log("enable resampling: " +
                     sampling_rate +
                     " -> " +
-                    _this.getActualSamplingRate());
-                _this.period_samples =
-                    Math.ceil((period_samples * _this.getActualSamplingRate()) / sampling_rate) * num_of_channels;
-                _this.resampler = new Worker("resampler.js");
+                    this.getActualSamplingRate());
+                this.period_samples =
+                    Math.ceil((period_samples * this.getActualSamplingRate()) / sampling_rate) * num_of_channels;
+                this.resampler = new Worker("resampler.js");
             }
             else {
-                _this.period_samples = period_samples * num_of_channels;
+                this.period_samples = period_samples * num_of_channels;
             }
-            _this.ringbuf = new RingBuffer(new Float32Array(_this.period_samples * buffer_periods));
-            _this.delay_samples = _this.period_samples * delay_periods;
-            if (_this.resampler) {
-                _this.resampler.onmessage = function (ev) {
+            this.ringbuf = new RingBuffer(new Float32Array(this.period_samples * buffer_periods));
+            this.delay_samples = this.period_samples * delay_periods;
+            if (this.resampler) {
+                this.resampler.onmessage = ev => {
                     if (ev.data.status == 0) {
                         resolve();
                     }
@@ -38,45 +36,44 @@ var WebAudioPlayer = /** @class */ (function () {
                         reject(ev.data);
                     }
                 };
-                _this.resampler.postMessage({
+                this.resampler.postMessage({
                     channels: num_of_channels,
                     in_sampling_rate: sampling_rate,
-                    out_sampling_rate: _this.getActualSamplingRate()
+                    out_sampling_rate: this.getActualSamplingRate()
                 });
             }
             else {
                 resolve();
             }
         });
-    };
-    WebAudioPlayer.prototype.enqueue = function (buf) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            if (_this.in_writing) {
+    }
+    enqueue(buf) {
+        return new Promise((resolve, reject) => {
+            if (this.in_writing) {
                 reject();
                 return;
             }
-            _this.in_writing = true;
-            var func = function (data) {
-                _this.ringbuf.append(data).then(function () {
-                    _this.in_writing = false;
-                    _this.check_buffer();
-                }, function (e) {
-                    _this.in_writing = false;
+            this.in_writing = true;
+            const func = (data) => {
+                this.ringbuf.append(data).then(() => {
+                    this.in_writing = false;
+                    this.check_buffer();
+                }, e => {
+                    this.in_writing = false;
                     reject(e);
                 });
             };
-            if (_this.resampler) {
-                var transfer_list = buf.transferable ? [buf.samples.buffer] : [];
-                _this.resampler.onmessage = function (ev) {
+            if (this.resampler) {
+                const transfer_list = buf.transferable ? [buf.samples.buffer] : [];
+                this.resampler.onmessage = ev => {
                     if (ev.data.status != 0) {
-                        _this.in_writing = false;
+                        this.in_writing = false;
                         reject(ev.data);
                         return;
                     }
                     func(ev.data.result);
                 };
-                _this.resampler.postMessage({
+                this.resampler.postMessage({
                     samples: buf.samples
                 }, transfer_list);
             }
@@ -84,79 +81,76 @@ var WebAudioPlayer = /** @class */ (function () {
                 func(buf.samples);
             }
         });
-    };
-    WebAudioPlayer.prototype._onaudioprocess = function (ev) {
+    }
+    _onaudioprocess(ev) {
         if (this.buffering) {
             this.check_buffer();
             return;
         }
-        var N = ev.outputBuffer.numberOfChannels;
-        var buf = new Float32Array(ev.outputBuffer.getChannelData(0).length * N);
-        var size = this.ringbuf.read_some(buf) / N;
-        for (var i = 0; i < N; ++i) {
-            var ch = ev.outputBuffer.getChannelData(i);
-            for (var j = 0; j < size; ++j)
+        const N = ev.outputBuffer.numberOfChannels;
+        const buf = new Float32Array(ev.outputBuffer.getChannelData(0).length * N);
+        const size = this.ringbuf.read_some(buf) / N;
+        for (let i = 0; i < N; ++i) {
+            const ch = ev.outputBuffer.getChannelData(i);
+            for (let j = 0; j < size; ++j)
                 ch[j] = buf[j * N + i];
         }
         this.check_buffer(true);
-    };
-    WebAudioPlayer.prototype.check_buffer = function (useTimeOut) {
-        var _this = this;
-        if (useTimeOut === void 0) { useTimeOut = false; }
+    }
+    check_buffer(useTimeOut = false) {
         if (this.in_requesting_check_buffer || !this.onneedbuffer)
             return;
-        var needbuf = this.check_buffer_internal();
+        const needbuf = this.check_buffer_internal();
         if (!needbuf)
             return;
         if (useTimeOut) {
             this.in_requesting_check_buffer = true;
-            window.setTimeout(function () {
-                _this.in_requesting_check_buffer = false;
-                if (_this.check_buffer_internal())
-                    _this.onneedbuffer();
+            window.setTimeout(() => {
+                this.in_requesting_check_buffer = false;
+                if (this.check_buffer_internal())
+                    this.onneedbuffer();
             }, 0);
         }
         else {
             this.onneedbuffer();
         }
-    };
-    WebAudioPlayer.prototype.check_buffer_internal = function () {
+    }
+    check_buffer_internal() {
         if (this.in_writing)
             return false;
-        var avail = this.ringbuf.available();
-        var size = this.ringbuf.size();
+        const avail = this.ringbuf.available();
+        const size = this.ringbuf.size();
         if (size >= this.delay_samples)
             this.buffering = false;
         if (this.period_samples <= avail)
             return true;
         return false;
-    };
-    WebAudioPlayer.prototype.start = function () {
+    }
+    start() {
         if (this.node) {
             this.node.connect(this.context.destination);
         }
-    };
-    WebAudioPlayer.prototype.stop = function () {
+    }
+    stop() {
         if (this.node) {
             this.ringbuf.clear();
             this.buffering = true;
             this.node.disconnect();
         }
-    };
-    WebAudioPlayer.prototype.close = function () {
+    }
+    close() {
         this.stop();
         this.context = null;
         this.node = null;
-    };
-    WebAudioPlayer.prototype.getActualSamplingRate = function () {
+    }
+    getActualSamplingRate() {
         return this.context.sampleRate;
-    };
-    WebAudioPlayer.prototype.getBufferStatus = function () {
+    }
+    getBufferStatus() {
         return {
             delay: this.ringbuf.size(),
             available: this.ringbuf.available(),
             capacity: this.ringbuf.capacity()
         };
-    };
-    return WebAudioPlayer;
-}());
+    }
+}

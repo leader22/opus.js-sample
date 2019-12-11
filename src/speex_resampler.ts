@@ -1,6 +1,3 @@
-///<reference path="typings/emscripten.d.ts" />
-///<reference path="typings/libspeexdsp.d.ts" />
-
 class SpeexResampler {
   private handle = 0;
   private channels: number;

@@ -1,5 +1,4 @@
-/// <reference path="api.d.ts" />
-/// <reference path="typings/emscripten.d.ts" />
+import { Packet, IResult, IAudioInfo, IAudioBuffer } from "./api";
 
 declare function _opus_decoder_create(
   sampling_rate: number,
@@ -56,10 +55,10 @@ class OpusDecoder {
     const sampling_rate = view32[0];
     invalid = invalid || view8[18] != 0;
     if (invalid) {
-      this.worker.postMessage(<IResult>{
+      this.worker.postMessage({
         status: -1,
         reason: "invalid opus header packet"
-      });
+      } as IResult);
       return;
     }
 
@@ -68,9 +67,9 @@ class OpusDecoder {
     const err_num = Module.getValue(err, "i32");
     Module._free(err);
     if (err_num != 0) {
-      this.worker.postMessage(<IResult>{
+      this.worker.postMessage({
         status: err_num
-      });
+      } as IResult);
       return;
     }
 
@@ -86,13 +85,13 @@ class OpusDecoder {
     );
 
     this.worker.onmessage = ev => {
-      this.decode(<Packet>ev.data);
+      this.decode(ev.data as Packet);
     };
-    this.worker.postMessage(<IAudioInfo & IResult>{
+    this.worker.postMessage({
       status: 0,
       sampling_rate: sampling_rate,
       num_of_channels: this.channels
-    });
+    } as IAudioInfo & IResult);
   }
 
   decode(packet: Packet) {
@@ -106,9 +105,9 @@ class OpusDecoder {
       0
     );
     if (ret < 0) {
-      this.worker.postMessage(<IResult>{
+      this.worker.postMessage({
         status: ret
-      });
+      } as IResult);
       return;
     }
 

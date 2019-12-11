@@ -1,9 +1,8 @@
-/// <reference path="api.d.ts" />
-/// <reference path="riff_pcm_wave.ts" />
-/// <reference path="microphone.ts" />
-/// <reference path="impl.ts" />
-
+import { IPlayer, IAudioInfo, IAudioBuffer, IAudioReader, Packet } from "./api";
 import { WebAudioPlayer } from "./player.js";
+import { AudioEncoder, AudioDecoder } from "./impl.js";
+import { MicrophoneReader } from "./microphone.js";
+import { RiffPcmWaveReader } from "./riff_pcm_wave.js";
 
 export class Test {
   private player: IPlayer = null;
@@ -64,17 +63,18 @@ export class Test {
         num_of_channels: info.num_of_channels,
         params: {
           application: parseInt(
-            (<HTMLInputElement>document.getElementById("opus_app")).value,
+            (document.getElementById("opus_app") as HTMLInputElement).value,
             10
           ),
           sampling_rate:
             parseInt(
-              (<HTMLInputElement>document.getElementById("opus_sampling_rate"))
-                .value,
+              (document.getElementById(
+                "opus_sampling_rate"
+              ) as HTMLInputElement).value,
               10
             ) * 1000,
           frame_duration: parseFloat(
-            (<HTMLInputElement>document.getElementById("opus_frame_duration"))
+            (document.getElementById("opus_frame_duration") as HTMLInputElement)
               .value
           )
         }
@@ -137,8 +137,10 @@ export class Test {
   }
 
   private get_reader(): [IAudioReader, any] {
-    const radio_mic = <HTMLInputElement>document.getElementById("input_mic");
-    const radio_file = <HTMLInputElement>document.getElementById("input_file");
+    const radio_mic = document.getElementById("input_mic") as HTMLInputElement;
+    const radio_file = document.getElementById(
+      "input_file"
+    ) as HTMLInputElement;
 
     let reader: IAudioReader = null;
     let params: any = null;
@@ -146,9 +148,9 @@ export class Test {
       reader = new MicrophoneReader();
       params = {};
     } else if (radio_file.checked) {
-      const input_file = <HTMLInputElement>(
-        document.getElementById("input_filedata")
-      );
+      const input_file = document.getElementById(
+        "input_filedata"
+      ) as HTMLInputElement;
       if (input_file.files.length != 1) {
         alert("not choose file");
         return;

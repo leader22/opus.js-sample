@@ -1,5 +1,6 @@
-/// <reference path="api.d.ts" />
-class AudioEncoder {
+import { IAudioEncoderConfig, Packet, IAudioBuffer, IAudioInfo } from "./api";
+
+export class AudioEncoder {
   worker: Worker;
 
   constructor(path: string) {
@@ -13,8 +14,9 @@ class AudioEncoder {
           reject(ev.data);
           return;
         }
-        resolve(<Array<Packet>>ev.data.packets);
+        resolve(ev.data.packets as Packet[]);
       };
+
       this.worker.postMessage(cfg);
     });
   }
@@ -26,14 +28,15 @@ class AudioEncoder {
           reject(ev.data);
           return;
         }
-        resolve(<Array<Packet>>ev.data.packets);
+        resolve(ev.data.packets as Packet[]);
       };
+
       this.worker.postMessage(data);
     });
   }
 }
 
-class AudioDecoder {
+export class AudioDecoder {
   worker: Worker;
 
   constructor(path: string) {
@@ -44,14 +47,16 @@ class AudioDecoder {
     const transfer_list = [];
     for (let i = 0; i < packets.length; ++i)
       transfer_list.push(packets[i].data);
+
     return new Promise<IAudioInfo>((resolve, reject) => {
       this.worker.onmessage = ev => {
         if (ev.data.status != 0) {
           reject(ev.data);
           return;
         }
-        resolve(<IAudioInfo>ev.data);
+        resolve(ev.data as IAudioInfo);
       };
+
       this.worker.postMessage(
         {
           config: cfg,
@@ -69,8 +74,9 @@ class AudioDecoder {
           reject(ev.data);
           return;
         }
-        resolve(<IAudioBuffer>ev.data);
+        resolve(ev.data as IAudioBuffer);
       };
+
       this.worker.postMessage(packet, [packet.data]);
     });
   }

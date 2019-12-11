@@ -1,5 +1,9 @@
-/// <reference path="api.d.ts" />
-/// <reference path="speex_resampler.ts" />
+import { IAudioEncoderConfig, IAudioBuffer, Packet } from "./api";
+importScripts("./speex_resampler.js");
+
+interface ISpeexResampler {
+  process(input: Float32Array): Float32Array;
+}
 
 declare function _opus_encoder_create(
   sampling_rate: number,
@@ -19,7 +23,7 @@ declare function _opus_encoder_destroy(handle: number): void;
 class OpusEncoder {
   worker: Worker;
   handle: number;
-  resampler: SpeexResampler = null;
+  resampler: ISpeexResampler = null;
   frame_size: number;
   channels: number;
   buf: Float32Array;
@@ -63,6 +67,7 @@ class OpusEncoder {
     }
     if (sampling_rate != config.sampling_rate) {
       try {
+        // eslint-disable-next-line no-undef
         this.resampler = new SpeexResampler(
           config.num_of_channels,
           config.sampling_rate,

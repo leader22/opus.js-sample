@@ -1,8 +1,8 @@
-import App from "./app.js";
-var app = new App();
-document.getElementById("play").addEventListener("click", function () {
+import { Test } from "./app.js";
+const app = new Test();
+document.getElementById("play").addEventListener("click", () => {
     app.play();
 });
-document.getElementById("encdecplay").addEventListener("click", function () {
+document.getElementById("encdecplay").addEventListener("click", () => {
     app.encode_decode_play();
 });

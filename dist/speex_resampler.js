@@ -1,8 +1,5 @@
-///<reference path="typings/emscripten.d.ts" />
-///<reference path="typings/libspeexdsp.d.ts" />
-var SpeexResampler = /** @class */ (function () {
-    function SpeexResampler(channels, in_rate, out_rate, quality) {
-        if (quality === void 0) { quality = 5; }
+class SpeexResampler {
+    constructor(channels, in_rate, out_rate, quality = 5) {
         this.handle = 0;
         this.in_ptr = 0;
         this.out_ptr = 0;
@@ -12,7 +9,7 @@ var SpeexResampler = /** @class */ (function () {
         this.channels = channels;
         this.in_rate = in_rate;
         this.out_rate = out_rate;
-        var err_ptr = Module._malloc(4);
+        const err_ptr = Module._malloc(4);
         this.handle = _speex_resampler_init(channels, in_rate, out_rate, quality, err_ptr);
         if (Module.getValue(err_ptr, "i32") != 0)
             throw "speex_resampler_init failed: ret=" +
@@ -21,12 +18,12 @@ var SpeexResampler = /** @class */ (function () {
         this.in_len_ptr = Module._malloc(4);
         this.out_len_ptr = Module._malloc(4);
     }
-    SpeexResampler.prototype.process = function (input) {
+    process(input) {
         if (!this.handle)
             throw "disposed object";
-        var samples = input.length;
-        var outSamples = Math.ceil((samples * this.out_rate) / this.in_rate);
-        var requireSize = samples * 4;
+        const samples = input.length;
+        const outSamples = Math.ceil((samples * this.out_rate) / this.in_rate);
+        const requireSize = samples * 4;
         if (this.in_capacity < requireSize) {
             if (this.in_ptr)
                 Module._free(this.in_ptr);
@@ -36,7 +33,7 @@ var SpeexResampler = /** @class */ (function () {
             this.out_ptr = Module._malloc(outSamples * 4);
             this.in_capacity = requireSize;
         }
-        var ret;
+        let ret;
         Module.setValue(this.in_len_ptr, samples / this.channels, "i32");
         Module.setValue(this.out_len_ptr, outSamples / this.channels, "i32");
         if (input.buffer == Module.HEAPF32.buffer) {
@@ -48,10 +45,10 @@ var SpeexResampler = /** @class */ (function () {
         }
         if (ret != 0)
             throw "speex_resampler_process_interleaved_float failed: " + ret;
-        var ret_samples = Module.getValue(this.out_len_ptr, "i32") * this.channels;
+        const ret_samples = Module.getValue(this.out_len_ptr, "i32") * this.channels;
         return Module.HEAPF32.subarray(this.out_ptr >> 2, (this.out_ptr >> 2) + ret_samples);
-    };
-    SpeexResampler.prototype.destroy = function () {
+    }
+    destroy() {
         if (!this.handle)
             return;
         _speex_resampler_destroy(this.handle);
@@ -63,6 +60,5 @@ var SpeexResampler = /** @class */ (function () {
         if (this.out_ptr)
             Module._free(this.out_ptr);
         this.in_len_ptr = this.out_len_ptr = this.in_ptr = this.out_ptr = 0;
-    };
-    return SpeexResampler;
-}());
+    }
+}

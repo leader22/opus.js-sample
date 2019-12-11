@@ -1,12 +1,10 @@
-/// <reference path="typings/es6-promise.d.ts" />
-
 interface TypedArray extends ArrayBufferView, ArrayLike<number> {
   length: number;
   set(array: TypedArray, offset?: number): void;
   subarray(begin: number, end?: number): TypedArray;
 }
 
-class RingBuffer {
+export class RingBuffer {
   static MAX_POS = 1 << 16;
   private buf: TypedArray;
   private wpos = 0;
