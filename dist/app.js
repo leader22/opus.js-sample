@@ -3,11 +3,11 @@
 /// <reference path="microphone.ts" />
 /// <reference path="player.ts" />
 /// <reference path="impl.ts" />
-var Test = /** @class */ (function () {
-    function Test() {
+var App = /** @class */ (function () {
+    function App() {
         this.player = null;
     }
-    Test.prototype.play = function () {
+    App.prototype.play = function () {
         var _this = this;
         this.init_player();
         var _a = this.get_reader(), reader = _a[0], open_params = _a[1];
@@ -34,7 +34,7 @@ var Test = /** @class */ (function () {
             }, _this.output_reject_log("player.init error"));
         }, this.output_reject_log("open error"));
     };
-    Test.prototype.encode_decode_play = function () {
+    App.prototype.encode_decode_play = function () {
         var _this = this;
         this.init_player();
         var _a = this.get_reader(), reader = _a[0], open_params = _a[1];
@@ -100,12 +100,12 @@ var Test = /** @class */ (function () {
             }
         };
     };
-    Test.prototype.init_player = function () {
+    App.prototype.init_player = function () {
         if (this.player)
             this.player.close();
         this.player = new WebAudioPlayer();
     };
-    Test.prototype.get_reader = function () {
+    App.prototype.get_reader = function () {
         var radio_mic = document.getElementById("input_mic");
         var radio_file = document.getElementById("input_file");
         var reader = null;
@@ -130,15 +130,16 @@ var Test = /** @class */ (function () {
         }
         return [reader, params];
     };
-    Test.prototype.output_reject_log = function (prefix) {
+    App.prototype.output_reject_log = function (prefix) {
         var _this = this;
         return function (e) {
             _this.player.close();
             console.log(prefix, e);
         };
     };
-    Test.period_size = 1024;
-    Test.delay_period_count = 4;
-    Test.ringbuffer_period_count = Test.delay_period_count * 4;
-    return Test;
+    App.period_size = 1024;
+    App.delay_period_count = 4;
+    App.ringbuffer_period_count = Test.delay_period_count * 4;
+    return App;
 }());
+export default App;

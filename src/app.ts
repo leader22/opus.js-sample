@@ -4,13 +4,13 @@
 /// <reference path="player.ts" />
 /// <reference path="impl.ts" />
 
-class Test {
+class App {
   private player: IPlayer = null;
   private static period_size = 1024;
   private static delay_period_count = 4;
   private static ringbuffer_period_count = Test.delay_period_count * 4;
 
-  private play(): void {
+  play(): void {
     this.init_player();
     const [reader, open_params] = this.get_reader();
     if (!reader) return;
@@ -45,7 +45,7 @@ class Test {
     }, this.output_reject_log("open error"));
   }
 
-  private encode_decode_play(): void {
+  encode_decode_play(): void {
     this.init_player();
     const [reader, open_params] = this.get_reader();
     if (!reader) return;
@@ -164,3 +164,5 @@ class Test {
     };
   }
 }
+
+export default App;

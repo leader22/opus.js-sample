@@ -1,4 +1,5 @@
-var app = new Test();
+import App from "./app";
+var app = new App();
 document.getElementById("play").addEventListener("click", function () {
     app.play();
 });
